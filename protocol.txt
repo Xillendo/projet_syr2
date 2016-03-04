@@ -1,0 +1,8 @@
+CLIENT:
+	GET <nomfichier> ---> taille = 3 + strlen(nomfichier) //demande un fichier audio (init la connexion)
+	NEXT ---> taille = 4 //demande le buffer suivant
+	LAST ---> taille = 4 //redemande le dernier buffer (cas de packet perdu)
+	
+SERVER:
+	buffer ---> taille = sizeof(buffer)
+	END ---> taille = 3

@@ -1,0 +1,18 @@
+CC 		= gcc
+CFLAGS	= -Wall -g -std=c11
+
+SRC		= src/lecteur.c include/audio.c
+
+OBJ 	= obj/lecteur.o obj/audio.o
+	
+main: $(OBJ)
+	$(CC) -o ./bin/$@ $(OBJ)
+	
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	
+depend:
+	makedepend $(SRC)
+	
+clean:
+	rm ./obj/*.o
