@@ -1,0 +1,4 @@
+bin/
+obj/
+*.bak
+makefile_bak.txt
