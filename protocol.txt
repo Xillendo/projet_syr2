@@ -4,5 +4,7 @@ CLIENT:
 	LAST ---> taille = 4 //redemande le dernier buffer (cas de packet perdu)
 	
 SERVER:
-	buffer ---> taille = sizeof(buffer)
+	metadata ---> taille 3 * int
+		envoie des 0 si le fichier n'existe pas
+	buffer ---> taille = sizeof(buffer) 
 	END ---> taille = 3

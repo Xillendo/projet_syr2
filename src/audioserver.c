@@ -12,14 +12,16 @@
 #include "../include/audio.h"
 
 #define BUFFER_SIZE 256
+#define COMMAND_SIZE 64
+#define PORT 54322
 
 void exec_server(int sfd);
-int get_next_buffer(int fd, char* buffer);
-void exit_server(char* buf, int sfd, int ffd);
+int get_next_buffer(int fd, uint8_t* buffer);
+void exit_server(uint8_t* buf, int sfd, int ffd);
 
 void sig_exit(int signum);
  
-int send_buf(int sfd, char* buf, struct sockaddr_in dest);
+int send_buf(int sfd, uint8_t* buf, struct sockaddr_in dest);
 int send_metadata(int sfd, struct sockaddr_in dest, int sample_rate, int sample_size, int channels);
 
 
@@ -36,7 +38,7 @@ int main(){
 	}
 	
 	maddr.sin_family = AF_INET;
-	maddr.sin_port = htons(54322);
+	maddr.sin_port = htons(PORT);
 	maddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	
 	int ret_bind;
@@ -63,9 +65,9 @@ void exec_server(int fd){
 	
 	//int stop = 0;
 	
-	char* buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+	uint8_t* buffer = (uint8_t*) malloc(BUFFER_SIZE * sizeof(uint8_t));
 	
-	char buf[32];
+	char buf[COMMAND_SIZE];
 	int buf_len = sizeof(buf);
 	unsigned int from_len = sizeof(struct sockaddr_in);
 	struct sockaddr_in from;
@@ -116,7 +118,9 @@ void exec_server(int fd){
 					file_fd = aud_readinit(arg, &sample_rate, &sample_size, &channels);	
 					if(file_fd < 0){
 						perror("Error open file");
-						exit(1);
+						sample_rate = NULL;
+						sample_size = NULL;
+						channels = NULL;
 					}
 					int ret_send_meta;
 					ret_send_meta = send_metadata(fd, from, sample_rate, sample_size, channels);
@@ -136,7 +140,7 @@ void exec_server(int fd){
 	//free(buffer);
 }
 
-int send_buf(int sfd, char *buf, struct sockaddr_in dest){
+int send_buf(int sfd, uint8_t *buf, struct sockaddr_in dest){
 	int send_return;
 	send_return = sendto(sfd, buf, sizeof(buf), 0, (struct sockaddr*) &dest, sizeof(struct sockaddr_in));
 	if(send_return < 0){
@@ -148,7 +152,7 @@ int send_buf(int sfd, char *buf, struct sockaddr_in dest){
 	}
 }
 
-int get_next_buffer(int fd, char* buf){
+int get_next_buffer(int fd, uint8_t* buf){
 	int read_size = read(fd, buf, BUFFER_SIZE);
 	if(read_size == -1){
 		perror("Error read file");
@@ -162,17 +166,31 @@ int get_next_buffer(int fd, char* buf){
 
 int send_metadata(int sfd, struct sockaddr_in dest, int sample_rate, int sample_size, int channels){
 	int buf[3];
-	buf[0] = sample_rate;
-	buf[1] = sample_size;
-	buf[2] = channels;
-	int send_return;
-	send_return = sendto(sfd, buf, sizeof(buf), 0, (struct sockaddr*) &dest, sizeof(struct sockaddr_in));
-	if(send_return < 0){
-		printf("send_metadata : Failed to send packet\n");
-		return -1;
+	if(sample_rate != NULL){
+		buf[0] = sample_rate;
+		buf[1] = sample_size;
+		buf[2] = channels;
+		int send_return;
+		send_return = sendto(sfd, buf, sizeof(buf), 0, (struct sockaddr*) &dest, sizeof(struct sockaddr_in));
+		if(send_return < 0){
+			printf("send_metadata : Failed to send packet\n");
+			return -1;
+		} else {
+			printf("send_metadata : Packet send\n");
+			return 0;
+		}
 	} else {
-		printf("send_metadata : Packet send\n");
-		return 0;
+		buf[0] = 0;
+		buf[1] = 0;
+		buf[2] = 0;
+		int send_return;
+		send_return = sendto(sfd, buf, sizeof(buf), 0, (struct sockaddr*) &dest, sizeof(struct sockaddr_in));
+		if(send_return < 0){
+			printf("send_metadata : Failed to send packet\n");
+			return -1;
+		}else{
+			return 0;
+		}
 	}
 }
 	
