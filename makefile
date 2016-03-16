@@ -1,17 +1,20 @@
 CC 		= gcc
 CFLAGS	= -Wall -g -std=c11
 
-SRC		= src/audioserver.c src/audioclient.c include/audio.c
+SRC		= src/audioserver.c src/audioclient.c src/lecteur.c include/audio.c 
 
 OBJSERV	= obj/audioserver.o obj/audio.o
-
 OBJCLI	= obj/audioclient.o obj/audio.o
+OBJLEC	= obj/lecteur.o obj/audio.o
 	
 audioserver: $(OBJSERV)
 	$(CC) -o ./bin/$@ $(OBJSERV)
 	
 audioclient: $(OBJCLI)
 	$(CC) -o ./bin/$@ $(OBJCLI)
+	
+lecteur: $(OBJLEC)
+	$(CC) -o ./bin/$@ $(OBJLEC)
 	
 obj/audioserver.o: src/audioserver.c
 	$(CC) $(CFLAGS) -c -o obj/audioserver.o src/audioserver.c
@@ -21,6 +24,9 @@ obj/audioclient.o: src/audioclient.c
 	
 obj/audio.o: include/audio.c
 	$(CC) $(CFLAGS) -c -o obj/audio.o include/audio.c
+	
+obj/lecteur.o: src/lecteur.c
+	$(CC) $(CFLAGS) -c -o obj/lecteur.o src/lecteur.c
 	
 depend:
 	makedepend $(SRC)
